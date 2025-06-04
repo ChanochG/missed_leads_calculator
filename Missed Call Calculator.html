@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missed Leads & Revenue Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-3xl w-full bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4 text-center">Unlock Your Hidden Revenue Potential</h1>
+        <p class="text-gray-600 mb-8 text-center">Discover the true cost of missed calls for your business and see the potential revenue you could be capturing.</p>
+
+        <div class="space-y-6 mb-8">
+            <!-- User Inputs -->
+            <div>
+                <label for="avgLeadValue" class="block text-sm font-semibold text-gray-700 mb-1">Average Revenue Per Converted Lead (£)</label>
+                <input type="number" id="avgLeadValue" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" value="2000" placeholder="e.g., 2000">
+            </div>
+
+            <div>
+                <label for="conversionRate" class="block text-sm font-semibold text-gray-700 mb-1">Your Lead Conversion Rate (%)</label>
+                <input type="number" id="conversionRate" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" value="10" placeholder="e.g., 10 (for 10%)">
+            </div>
+
+            <div>
+                <label for="totalCallVolume" class="block text-sm font-semibold text-gray-700 mb-1">Total Inbound Call Volume Per Month</label>
+                <input type="number" id="totalCallVolume" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" value="500" placeholder="e.g., 500">
+            </div>
+
+            <div>
+                <label for="currentLeadsCaptured" class="block text-sm font-semibold text-gray-700 mb-1">Current Leads Captured Per Month</label>
+                <input type="number" id="currentLeadsCaptured" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" value="50" placeholder="e.g., 50">
+            </div>
+
+            <div>
+                <label for="industry" class="block text-sm font-semibold text-gray-700 mb-1">Your Industry</label>
+                <select id="industry" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                    <option value="Legal">Legal Services</option>
+                    <option value="Estate Agents">Estate Agents</option>
+                    <option value="Care Homes">Care Homes</option>
+                    <option value="Recruitment">Recruitment</option>
+                    <option value="Other">Other (General Business)</option>
+                </select>
+            </div>
+
+            <!-- Dynamic Industry-Based Assumptions -->
+            <div class="bg-blue-50 p-4 rounded-md border border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Industry-Based Estimates (Adjust if needed)</h3>
+                <p class="text-sm text-gray-600 mb-4">These are general industry statistics. Feel free to adjust them based on your specific business.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="estimatedMissedCallRate" class="block text-sm font-medium text-gray-700 mb-1">Estimated Missed Call Rate (%)</label>
+                        <input type="number" id="estimatedMissedCallRate" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="0" placeholder="e.g., 25">
+                    </div>
+                    <div>
+                        <label for="estimatedLeadPercentage" class="block text-sm font-medium text-gray-700 mb-1">Estimated Leads Per Call (%)</label>
+                        <input type="number" id="estimatedLeadPercentage" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="0" placeholder="e.g., 20">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button
+            id="calculateButton"
+            class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out text-lg"
+        >
+            Calculate My Missed Revenue
+        </button>
+
+        <!-- Results Section -->
+        <div id="results" class="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg hidden">
+            <h2 class="text-2xl font-bold text-green-800 mb-4 text-center">Your Potential Missed Revenue:</h2>
+            <p class="text-xl text-gray-700 mb-2">Estimated Missed Calls Per Month: <span id="displayEstimatedMissedCalls" class="font-bold text-red-600">0</span></p>
+            <p class="text-xl text-gray-700 mb-2">Estimated Missed Leads Per Month: <span id="displayEstimatedMissedLeads" class="font-bold text-red-600">0</span></p>
+            <p class="text-3xl font-extrabold text-green-800 mt-4">£<span id="displayPotentialLostRevenue">0.00</span></p>
+            <p class="text-base text-gray-600 mt-4 text-center">This is the estimated revenue you could be gaining each month by capturing every lead.</p>
+        </div>
+    </div>
+
+    <script>
+        // Industry-specific default statistics (estimated based on common industry benchmarks)
+        const industryDefaults = {
+            "Legal": {
+                missedCallRate: 30, // Percentage of total calls missed
+                leadPercentage: 35 // Percentage of total calls that are leads
+            },
+            "Estate Agents": {
+                missedCallRate: 30,
+                leadPercentage: 25
+            },
+            "Care Homes": {
+                missedCallRate: 25,
+                leadPercentage: 25
+            },
+            "Recruitment": {
+                missedCallRate: 28,
+                leadPercentage: 20
+            },
+            "Other": {
+                missedCallRate: 20, // General average, conservative
+                leadPercentage: 15  // General average, conservative
+            }
+        };
+
+        // Get elements
+        const industrySelect = document.getElementById('industry');
+        const estimatedMissedCallRateInput = document.getElementById('estimatedMissedCallRate');
+        const estimatedLeadPercentageInput = document.getElementById('estimatedLeadPercentage');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsDiv = document.getElementById('results');
+
+        // Function to update default values based on selected industry
+        function updateIndustryDefaults() {
+            const selectedIndustry = industrySelect.value;
+            const defaults = industryDefaults[selectedIndustry];
+            if (defaults) {
+                estimatedMissedCallRateInput.value = defaults.missedCallRate;
+                estimatedLeadPercentageInput.value = defaults.leadPercentage;
+            }
+        }
+
+        // Event listener for industry selection change
+        industrySelect.addEventListener('change', updateIndustryDefaults);
+
+        // Initial update when the page loads
+        document.addEventListener('DOMContentLoaded', updateIndustryDefaults);
+
+        // Calculation logic
+        calculateButton.addEventListener('click', () => {
+            const avgLeadValue = parseFloat(document.getElementById('avgLeadValue').value);
+            const conversionRate = parseFloat(document.getElementById('conversionRate').value);
+            const totalCallVolume = parseFloat(document.getElementById('totalCallVolume').value);
+            const currentLeadsCaptured = parseFloat(document.getElementById('currentLeadsCaptured').value);
+            
+            // Use potentially user-modified industry estimates
+            const missedCallRate = parseFloat(estimatedMissedCallRateInput.value);
+            const leadPercentage = parseFloat(estimatedLeadPercentageInput.value);
+
+            // Input validation
+            if (isNaN(avgLeadValue) || isNaN(conversionRate) || isNaN(totalCallVolume) || isNaN(currentLeadsCaptured) || isNaN(missedCallRate) || isNaN(leadPercentage) || 
+                avgLeadValue < 0 || conversionRate < 0 || totalCallVolume < 0 || currentLeadsCaptured < 0 || missedCallRate < 0 || leadPercentage < 0) {
+                alert("Please enter valid positive numbers for all fields.");
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            // Calculations
+            const estimatedMissedCalls = totalCallVolume * (missedCallRate / 100);
+            
+            // Missed leads are those potential leads that were part of the missed calls
+            const estimatedMissedLeads = estimatedMissedCalls * (leadPercentage / 100);
+            
+            // Ensure missed leads doesn't go negative if current leads are somehow higher than potential
+            // This scenario implies they are already capturing more leads than the industry average suggests are available from their call volume,
+            // or their "current leads captured" includes leads from other sources.
+            // For this calculator, we focus on *missed leads from missed calls*.
+            const netMissedLeads = Math.max(0, estimatedMissedLeads);
+
+            const potentialLostRevenue = netMissedLeads * avgLeadValue * (conversionRate / 100);
+
+            // Display results
+            document.getElementById('displayEstimatedMissedCalls').textContent = estimatedMissedCalls.toFixed(0);
+            document.getElementById('displayEstimatedMissedLeads').textContent = netMissedLeads.toFixed(0);
+            document.getElementById('displayPotentialLostRevenue').textContent = potentialLostRevenue.toFixed(2);
+
+            resultsDiv.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
